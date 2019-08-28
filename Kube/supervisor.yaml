@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: "2019-08-28T04:21:30Z"
+  generation: 1
+  name: supervisor
+  namespace: default
+  resourceVersion: "8297731"
+  selfLink: /apis/apps/v1/namespaces/default/statefulsets/supervisor
+  uid: 4f81e336-c94b-11e9-a084-7e00950d7170
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: supervisor
+  serviceName: supervisor
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: supervisor
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - supervisor
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - storm
+        - supervisor
+        image: siddharthjoshi/storm:v4
+        imagePullPolicy: Always
+        name: kubernetes-stormsupervisor
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /apache-storm-1.2.3/extlib
+          name: extlib
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: extlib
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      dataSource: null
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
